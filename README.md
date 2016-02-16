@@ -1,15 +1,14 @@
 # EzSqlite
-Android library to reduce SQLite Database boilerplate code
-
-This library wraps up a lot of the boilerplate code required when setting up a SQLite database for Android projects. 
-
-It also provides basic CRUD operations and is suitable for flat/non-relational tables. The library assumes that tables use an integer primary key.
+Android library to reduce SQLite Database boilerplate code. This is a no frills implementation of code that is repeated when configuring SQLite in Android projects. 
 
 
-All you need to do is extend the 3 classes and implement the abstract methods.
+The library provides basic CRUD operations and is suitable for flat/non-relational tables. A single integer primary key is assumed for simplicity.
 
-BaseSQLiteOpenHelper handles database creation and upgrades
 
-BaseDataSource handles database operations. You just need to provide the implementations for clearing the database, extracting the row id from your domain models, and conversion to and from the database for individual domain models.
+To use this library, extend BaseSQLiteOpenHelper for every databse, and BaseDataSource and DataPeraister for every table required.
+
+BaseSQLiteOpenHelper handles creating and upgrading your database.
+
+BaseDataSource handles database operations. Just provide implementations for clearing the database, extracting ids from domain models, and conversion to and from rows.
 
 DataPersister provides the public operations to manipulate your database.
