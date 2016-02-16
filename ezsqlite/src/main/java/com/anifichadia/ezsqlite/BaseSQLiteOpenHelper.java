@@ -30,14 +30,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 import android.os.Build;
 
 /**
- * ------ Template class ------ <br />
- * <br />
- * Template for SQLiteOpenHelper to manage interaction with SQLite database for an application.
- * <br />
- * <br />
- * Developers should implement their own version with the required fields<br />
- * <br />
- * Refer to Vogella example:
+ * For now, refer to Vogella's example:
  * http://www.vogella.com/tutorials/AndroidSQLite/article.html#databasetutorial_database
  *
  * @author Aniruddh Fichadia | Email: Ani.Fichadia@gmail.com | GitHub Username: AniFichadia
