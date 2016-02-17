@@ -14,5 +14,6 @@ BaseDataSource handles database operations. Just provide implementations for cle
 DataPersister provides the public operations to manipulate your database as well as opening and closing connections to the database.
 
 Todo:
-Logging
-Table builder
+ - Logging
+ - Table builder
+ - Usage examples
