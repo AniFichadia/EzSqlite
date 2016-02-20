@@ -37,16 +37,14 @@ import java.util.Collection;
  */
 public class DataPersister<T, B extends BaseDataSource<T>>
 {
-	// ============================= Attributes ==============================
 	protected String TAG = DataPersister.class.getSimpleName();
 
 	protected final Context context;
-	protected final B dataSource;
+	protected final B       dataSource;
 
 	public boolean DEBUG = true;
 
 
-	// ============================ Constructors =============================
 	public DataPersister(Context context, B dataSource)
 	{
 		this.context = context;
@@ -54,7 +52,6 @@ public class DataPersister<T, B extends BaseDataSource<T>>
 	}
 
 
-	// ========================== Delegate Methods ===========================
 	public synchronized void open() throws SQLException
 	{
 		dataSource.open();
@@ -179,7 +176,6 @@ public class DataPersister<T, B extends BaseDataSource<T>>
 	}
 
 
-	// ========================== Getters & Setters ==========================
 	public Context getContext()
 	{
 		return context;

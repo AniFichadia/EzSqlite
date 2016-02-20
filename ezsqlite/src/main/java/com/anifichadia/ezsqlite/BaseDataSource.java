@@ -28,6 +28,8 @@ import android.database.DatabaseUtils;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -45,7 +47,6 @@ import java.util.List;
  */
 public abstract class BaseDataSource<T>
 {
-	// ============================= Attributes ==============================
 	protected final Context context;
 
 	/**
@@ -53,9 +54,9 @@ public abstract class BaseDataSource<T>
 	 */
 	protected       SQLiteDatabase   database;
 	/**
-	 * Optional SQLiteHelper
+	 * Database Open SQLiteHelper
 	 */
-	protected final SQLiteOpenHelper dbHelper;
+	protected final SQLiteOpenHelper openHelper;
 
 	/**
 	 * Table name
@@ -76,13 +77,13 @@ public abstract class BaseDataSource<T>
 	protected final String defaultOrderBy;
 
 
-	// ============================ Constructors =============================
-	public BaseDataSource(Context context, SQLiteOpenHelper dbHelper, String tableName,
-	                      String idColName, String[] allColumnNames, String defaultOrderBy)
+	public BaseDataSource(@NonNull Context context, @NonNull SQLiteOpenHelper openHelper,
+	                      @NonNull String tableName, @NonNull String idColName,
+	                      @Nullable String[] allColumnNames, @Nullable String defaultOrderBy)
 	{
 		this.context = context;
 
-		this.dbHelper = dbHelper;
+		this.openHelper = openHelper;
 
 		this.tableName = tableName;
 		this.idFieldName = idColName;
@@ -91,52 +92,11 @@ public abstract class BaseDataSource<T>
 	}
 
 
-	public BaseDataSource(Context context, SQLiteOpenHelper dbHelper, String tableName,
-	                      String idColName, String[] allColumnNames)
+	public BaseDataSource(@NonNull Context context, @NonNull SQLiteOpenHelper openHelper,
+	                      @NonNull String tableName, @NonNull String idColName,
+	                      @Nullable String[] allColumnNames)
 	{
-		this(context, dbHelper, tableName, idColName, allColumnNames, null);
-	}
-
-
-	// =============================== Methods ===============================
-	// Cursor operations
-
-
-	/**
-	 * Reads all rows in a cursor and returns them as a {@link Collection<T>)
-	 *
-	 * @param cursor
-	 * @return
-	 */
-	protected Collection<T> cursorToCollection(Cursor cursor)
-	{
-		return cursorToList(cursor);
-	}
-
-
-	/**
-	 * Reads all rows in a cursor and returns them as a {@link List<T>)
-	 *
-	 * @param cursor
-	 * @return
-	 */
-	protected List<T> cursorToList(Cursor cursor)
-	{
-		List<T> elems = new ArrayList<T>();
-
-		// Move cursor to the first row
-		cursor.moveToFirst();
-		// Use cursor to iterate through all retrieved rows
-		while (!cursor.isAfterLast()) {
-			// Convert cursor to object and add to list
-			T t = convertFromCursor(cursor);
-			elems.add(t);
-
-			// Move to next item
-			cursor.moveToNext();
-		}
-
-		return elems;
+		this(context, openHelper, tableName, idColName, allColumnNames, null);
 	}
 
 
@@ -147,7 +107,7 @@ public abstract class BaseDataSource<T>
 	 */
 	public void open() throws SQLException
 	{
-		setDatabase(dbHelper.getWritableDatabase());
+		setDatabase(openHelper.getWritableDatabase());
 	}
 
 
@@ -156,7 +116,7 @@ public abstract class BaseDataSource<T>
 	 */
 	public void close()
 	{
-		dbHelper.close();
+		openHelper.close();
 	}
 
 
@@ -174,11 +134,11 @@ public abstract class BaseDataSource<T>
 	public T insert(T value)
 	{
 		// Create ContentValues from provided object
-		ContentValues values = objectToContentValues(initializeContentValues(value, false), value,
-		                                             false);
+		boolean       isUpdate = false;
+		ContentValues values   = toRow(initializeContentValues(value, isUpdate), value, isUpdate);
 
 		// Insert value into database and retrieve automatically generated id
-		long insertId = getDatabase().insert(tableName, null, values);
+		long insertId = database.insert(tableName, null, values);
 
 		// Return inserted entry
 		return get(insertId);
@@ -197,8 +157,8 @@ public abstract class BaseDataSource<T>
 	public T get(long id)
 	{
 		// Query the database for a row with the provided ID
-		Cursor cursor = getDatabase().query(tableName, getAllColumnNames(),
-		                                    idFieldName + " = " + id, null, null, null, null);
+		Cursor cursor = database.query(tableName, allColumnNames, idFieldName + " = " + id, null,
+		                               null, null, null);
 
 		// Move cursor to the first row. Used to check if the query has any results.
 		boolean moveResult = cursor.moveToFirst();
@@ -206,7 +166,7 @@ public abstract class BaseDataSource<T>
 			return null;
 		else
 			// Convert object from a cursor object and return
-			return convertFromCursor(cursor);
+			return fromRow(cursor);
 	}
 
 
@@ -228,10 +188,18 @@ public abstract class BaseDataSource<T>
 	 */
 	public Collection<T> getAll(String orderBy)
 	{
-		// Query for all items in the database
-		Cursor cursor = database.query(tableName, allColumnNames, null, null, null, null, orderBy);
+		return getAllWhere(null, null, orderBy);
+	}
 
-		return cursorToCollection(cursor);
+
+	public Collection<T> getAllWhere(@Nullable String where, @Nullable String[] whereArgs,
+	                                 @Nullable String orderBy)
+	{
+		// Query for all items in the database
+		Cursor cursor = database.query(tableName, allColumnNames, where, whereArgs, null, null,
+		                               orderBy);
+
+		return cursorToList(cursor);
 	}
 
 
@@ -252,11 +220,11 @@ public abstract class BaseDataSource<T>
 		long id = getIdFromObject(value);
 
 		// Create ContentValues from provided object
-		ContentValues values = objectToContentValues(initializeContentValues(value, true), value,
-		                                             true);
+		boolean       isUpdate = true;
+		ContentValues values   = toRow(initializeContentValues(value, isUpdate), value, isUpdate);
 
 		// Run update query on database
-		getDatabase().update(tableName, values, idFieldName + " = " + id, null);
+		database.update(tableName, values, idFieldName + " = " + id, null);
 
 		return get(id);
 	}
@@ -277,7 +245,7 @@ public abstract class BaseDataSource<T>
 		long id = getIdFromObject(value);
 
 		// Perform delete operation
-		int rowsAffected = getDatabase().delete(tableName, idFieldName + " = " + id, null);
+		int rowsAffected = database.delete(tableName, idFieldName + " = " + id, null);
 
 		// Return success of delete operation
 		return (rowsAffected > 0);
@@ -289,7 +257,7 @@ public abstract class BaseDataSource<T>
 	 */
 	public void dropTable()
 	{
-		getDatabase().execSQL("drop table if exists " + getTableName());
+		database.execSQL("drop table if exists " + tableName);
 	}
 
 
@@ -305,12 +273,9 @@ public abstract class BaseDataSource<T>
 	public boolean contains(T value)
 	{
 		// Query the database for a row with the provided ID
-		// Cursor cursor = getDatabase ().rawQuery (
-		// "SELECT * FROM " + getTableName () + " WHERE " + getIdFieldName () + " = " + "'"
-		// + getIdFromObject (value) + "'", null);
-		Cursor cursor = getDatabase().query(getTableName(), null, getIdFieldName() + " = ?",
-		                                    new String[]{getIdFromObject(value) + ""}, null, null,
-		                                    null);
+		Cursor cursor = database.query(tableName, null, idFieldName + " = ?",
+		                               new String[]{getIdFromObject(value) + ""}, null, null,
+		                               null);
 
 		// Move cursor to the first row. Used to check if the query has any results.
 		return cursor.moveToFirst();
@@ -327,14 +292,15 @@ public abstract class BaseDataSource<T>
 
 
 	/**
-	 * Helper method for {@link #objectToContentValues(ContentValues, Object, boolean)}. Sets up the
+	 * Helper method for {@link #toRow(ContentValues, Object, boolean)}. Sets up
+	 * the
 	 * {@link ContentValues} for inserting or updating a row.
 	 */
 	protected ContentValues initializeContentValues(T value, boolean isUpdate)
 	{
 		ContentValues values = new ContentValues();
 		if (isUpdate) {
-			values.put(getIdFieldName(), getIdFromObject(value));
+			values.put(idFieldName, getIdFromObject(value));
 		} // Do nothing if false. Its unnecessary for insert operations
 
 		return values;
@@ -349,11 +315,8 @@ public abstract class BaseDataSource<T>
 			return null;
 		else
 			// Convert object from a cursor object and return
-			return convertFromCursor(cursor);
+			return fromRow(cursor);
 	}
-
-
-	// ============================== Abstracted =============================
 
 
 	/**
@@ -362,7 +325,15 @@ public abstract class BaseDataSource<T>
 	 * Note: it is recommended that a truncate operation is implemented and used in a custom
 	 * SQLiteOpenHelper class as truncation is more efficient than row deletions
 	 */
-	public abstract void clear();
+	public boolean clear()
+	{
+		if (openHelper instanceof BaseSQLiteOpenHelper) {
+			((BaseSQLiteOpenHelper) openHelper).truncateTable(database, tableName);
+			return true;
+		}
+
+		return false;
+	}
 
 
 	/**
@@ -375,6 +346,35 @@ public abstract class BaseDataSource<T>
 	protected abstract long getIdFromObject(T value);
 
 
+	// Cursor operations
+
+
+	/**
+	 * Reads all rows in a cursor and returns them as a {@link List<T>)
+	 *
+	 * @param cursor
+	 * @return
+	 */
+	protected List<T> cursorToList(Cursor cursor)
+	{
+		List<T> elems = new ArrayList<T>();
+
+		// Move cursor to the first row
+		cursor.moveToFirst();
+		// Use cursor to iterate through all retrieved rows
+		while (!cursor.isAfterLast()) {
+			// Convert cursor to object and add to list
+			T t = fromRow(cursor);
+			if (t != null) elems.add(t);
+
+			// Move to next item
+			cursor.moveToNext();
+		}
+
+		return elems;
+	}
+
+
 	/**
 	 * Converts a cursor object to an object of generic type T. Used so database rows can be
 	 * retrieved as objects
@@ -382,7 +382,7 @@ public abstract class BaseDataSource<T>
 	 * @param cursor Cursor to convert to an object
 	 * @return Converted object
 	 */
-	protected abstract T convertFromCursor(Cursor cursor);
+	protected abstract T fromRow(Cursor cursor);
 
 
 	/**
@@ -396,11 +396,9 @@ public abstract class BaseDataSource<T>
 	 *                 operations (eg. setting an ID)
 	 * @return ContentValue object from value
 	 */
-	protected abstract ContentValues objectToContentValues(ContentValues contentValues, T value,
-	                                                       boolean isUpdate);
+	protected abstract ContentValues toRow(ContentValues contentValues, T value, boolean isUpdate);
 
 
-	// ========================== Getters & Setters ==========================
 	public Context getContext()
 	{
 		return context;
@@ -419,9 +417,9 @@ public abstract class BaseDataSource<T>
 	}
 
 
-	public SQLiteOpenHelper getDbHelper()
+	public SQLiteOpenHelper getOpenHelper()
 	{
-		return dbHelper;
+		return openHelper;
 	}
 
 

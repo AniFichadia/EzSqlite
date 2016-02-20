@@ -50,8 +50,7 @@ public abstract class BaseSQLiteOpenHelper
 
 	protected final String[] allTables;
 
-	
-	// ============================ Constructors =============================
+
 	public BaseSQLiteOpenHelper(Context context, String databaseName, CursorFactory factory,
 	                            int databaseVersion, String[] allTables)
 	{
@@ -74,9 +73,6 @@ public abstract class BaseSQLiteOpenHelper
 	}
 
 
-	// ============================== Inherited ==============================
-
-
 	@Override
 	public void onCreate(SQLiteDatabase db)
 	{
@@ -97,9 +93,6 @@ public abstract class BaseSQLiteOpenHelper
 	}
 
 
-	// =============================== Methods ===============================
-
-
 	/**
 	 * Truncate a specified table.
 	 * <p/>
@@ -117,8 +110,7 @@ public abstract class BaseSQLiteOpenHelper
 		createSpecificTable(db, tableName);
 	}
 	
-	
-	// ============================== Abstracted =============================
+
 	/**
 	 * Creates a specific table that is supported by the current database.
 	 *
