@@ -132,6 +132,7 @@ public abstract class BaseDataSource<T>
 	 * @return The inserted entry from the database (uses {@link #get(long)} for the database
 	 * generated id)
 	 */
+	@Nullable
 	public T insert(T value)
 	{
 		// Create ContentValues from provided object
@@ -155,19 +156,14 @@ public abstract class BaseDataSource<T>
 	 * @param id ID of the row to retrieve
 	 * @return Row with the specified id or null if no such row exists
 	 */
+	@Nullable
 	public T get(long id)
 	{
 		// Query the database for a row with the provided ID
 		Cursor cursor = database.query(tableName, allColumnNames, idFieldName + " = " + id, null,
 		                               null, null, null);
 
-		// Move cursor to the first row. Used to check if the query has any results.
-		boolean moveResult = cursor.moveToFirst();
-		if (!moveResult) // return null for no entry
-			return null;
-		else
-			// Convert object from a cursor object and return
-			return fromRow(cursor);
+		return getSingleRowFromCursor(cursor);
 	}
 
 
@@ -215,6 +211,7 @@ public abstract class BaseDataSource<T>
 	 * @param value Object to update row with
 	 * @return The updated entry from the database (uses {@link #get(long)})
 	 */
+	@Nullable
 	public T update(T value)
 	{
 		// Get ID from object
@@ -258,7 +255,7 @@ public abstract class BaseDataSource<T>
 	 */
 	public void dropTable()
 	{
-		database.execSQL("drop table if exists " + tableName);
+		database.execSQL("DROP TABLE IF EXISTS " + tableName);
 	}
 
 
@@ -297,6 +294,7 @@ public abstract class BaseDataSource<T>
 	 * the
 	 * {@link ContentValues} for inserting or updating a row.
 	 */
+	@NonNull
 	protected ContentValues initializeContentValues(T value, boolean isUpdate)
 	{
 		ContentValues values = new ContentValues();
@@ -315,8 +313,7 @@ public abstract class BaseDataSource<T>
 		boolean moveResult = cursor.moveToFirst();
 		if (!moveResult) // return null for no entry
 			return null;
-		else
-			// Convert object from a cursor object and return
+		else // Convert object from a cursor object and return
 			return fromRow(cursor);
 	}
 
@@ -357,6 +354,7 @@ public abstract class BaseDataSource<T>
 	 * @param cursor
 	 * @return
 	 */
+	@NonNull
 	protected List<T> cursorToList(Cursor cursor)
 	{
 		List<T> elems = new ArrayList<T>();
@@ -385,6 +383,7 @@ public abstract class BaseDataSource<T>
 	 * @param cursor Cursor to convert to an object
 	 * @return Converted object
 	 */
+	@Nullable
 	protected abstract T fromRow(Cursor cursor);
 
 
@@ -399,7 +398,8 @@ public abstract class BaseDataSource<T>
 	 *                 operations (eg. setting an ID)
 	 * @return ContentValue object from value
 	 */
-	protected abstract ContentValues toRow(ContentValues contentValues, T value, boolean isUpdate);
+	@NonNull
+	protected abstract ContentValues toRow(ContentValues values, T value, boolean isUpdate);
 
 
 	public Context getContext()
