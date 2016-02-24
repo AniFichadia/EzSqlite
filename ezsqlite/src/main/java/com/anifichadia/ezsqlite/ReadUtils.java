@@ -22,6 +22,7 @@ package com.anifichadia.ezsqlite;
 
 
 import android.database.Cursor;
+import android.support.annotation.NonNull;
 
 /**
  * Provides utility methods to read from an Android SQLite database using {@link Cursor}
@@ -31,6 +32,63 @@ import android.database.Cursor;
  */
 public class ReadUtils
 {
+	private final Cursor cursor;
+
+
+	public ReadUtils(@NonNull Cursor cursor)
+	{
+		this.cursor = cursor;
+	}
+
+
+	public String getString(String columnName)
+	{
+		return cursor.getString(cursor.getColumnIndex(columnName));
+	}
+
+
+	public long getLong(String columnName)
+	{
+		return cursor.getLong(cursor.getColumnIndex(columnName));
+	}
+
+
+	public int getInt(String columnName)
+	{
+		return cursor.getInt(cursor.getColumnIndex(columnName));
+	}
+
+
+	public short getShort(String columnName)
+	{
+		return cursor.getShort(cursor.getColumnIndex(columnName));
+	}
+
+
+	public byte[] getBlob(String columnName)
+	{
+		return cursor.getBlob(cursor.getColumnIndex(columnName));
+	}
+
+
+	public double getDouble(String columnName)
+	{
+		return cursor.getDouble(cursor.getColumnIndex(columnName));
+	}
+
+
+	public float getFloat(String columnName)
+	{
+		return cursor.getFloat(cursor.getColumnIndex(columnName));
+	}
+
+
+	public boolean getBoolean(String columnName)
+	{
+		return cursor.getInt(cursor.getColumnIndex(columnName)) != 0;
+	}
+
+	
 	public static String getString(Cursor cursor, String columnName)
 	{
 		return cursor.getString(cursor.getColumnIndex(columnName));

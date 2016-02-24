@@ -54,7 +54,8 @@ public abstract class BaseDataSource<T>
 	 */
 	protected       SQLiteDatabase   database;
 	/**
-	 * Database Open SQLiteHelper
+	 * Manages database creation and version management, can be just an {@link SQLiteOpenHelper} or
+	 * {@link BaseSQLiteOpenHelper}
 	 */
 	protected final SQLiteOpenHelper openHelper;
 
@@ -273,7 +274,7 @@ public abstract class BaseDataSource<T>
 	public boolean contains(T value)
 	{
 		// Query the database for a row with the provided ID
-		Cursor cursor = database.query(tableName, null, idFieldName + " = ?",
+		Cursor cursor = database.query(tableName, allColumnNames, idFieldName + " = ?",
 		                               new String[]{getIdFromObject(value) + ""}, null, null,
 		                               null);
 
@@ -307,6 +308,7 @@ public abstract class BaseDataSource<T>
 	}
 
 
+	@Nullable
 	protected T getSingleRowFromCursor(Cursor cursor)
 	{
 		// Move cursor to the first row. Used to check if the query has any results.
@@ -365,7 +367,8 @@ public abstract class BaseDataSource<T>
 		while (!cursor.isAfterLast()) {
 			// Convert cursor to object and add to list
 			T t = fromRow(cursor);
-			if (t != null) elems.add(t);
+			if (t != null)
+				elems.add(t);
 
 			// Move to next item
 			cursor.moveToNext();

@@ -22,6 +22,7 @@ package com.anifichadia.ezsqlite;
 
 
 import android.content.ContentValues;
+import android.support.annotation.NonNull;
 
 /**
  * Provides utility methods to write to an Android SQLite database using {@link ContentValues}
@@ -31,6 +32,91 @@ import android.content.ContentValues;
  */
 public class WriteUtils
 {
+	protected final ContentValues values;
+
+
+	private WriteUtils(@NonNull ContentValues values)
+	{
+		this.values = values;
+	}
+
+
+	public static WriteUtils using(@NonNull ContentValues values)
+	{
+		return new WriteUtils(values);
+	}
+
+
+	public WriteUtils put(String columnName, String value)
+	{
+		writeString(values, columnName, value);
+
+		return this;
+	}
+
+
+	public WriteUtils put(String columnName, long value)
+	{
+		writeLong(values, columnName, value);
+
+		return this;
+	}
+
+
+	public WriteUtils put(String columnName, int value)
+	{
+		writeInt(values, columnName, value);
+
+		return this;
+	}
+
+
+	public WriteUtils put(String columnName, short value)
+	{
+		writeShort(values, columnName, value);
+
+		return this;
+	}
+
+
+	public WriteUtils put(String columnName, byte[] value)
+	{
+		writeBlob(values, columnName, value);
+
+		return this;
+	}
+
+
+	public WriteUtils put(String columnName, double value)
+	{
+		writeDouble(values, columnName, value);
+		
+		return this;
+	}
+
+
+	public WriteUtils put(String columnName, float value)
+	{
+		writeFloat(values, columnName, value);
+
+		return this;
+	}
+
+
+	public WriteUtils put(String columnName, boolean value)
+	{
+		writeBoolean(values, columnName, value);
+
+		return this;
+	}
+
+
+	public ContentValues getValues()
+	{
+		return values;
+	}
+
+
 	public static void writeString(ContentValues values, String columnName, String value)
 	{
 		values.put(columnName, value);

@@ -2,7 +2,7 @@
 Android library to reduce SQLite Database boilerplate code. This is a no frills, zero reflection and code generation implementation of code that is typically repeated when configuring SQLite in Android projects. 
 
 
-The library provides basic CRUD operations and is suitable for flat/non-relational tables. A single integer primary key is assumed for simplicity.
+The library provides basic CRUD operations and is suitable for flat/non-relational tables. A single, integer primary key is assumed for simplicity.
 
 
 To use this library, extend BaseSQLiteOpenHelper for every database, and BaseDataSource and DataPersister for every table required.
