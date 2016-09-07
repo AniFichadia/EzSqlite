@@ -24,6 +24,8 @@ package com.anifichadia.ezsqlite;
 import android.content.ContentValues;
 import android.support.annotation.NonNull;
 
+import java.util.Date;
+
 /**
  * Provides utility methods to write to an Android SQLite database using {@link ContentValues}
  *
@@ -110,6 +112,13 @@ public class WriteUtils
 		return this;
 	}
 
+	public WriteUtils put(String columnName, Date value)
+	{
+		writeLong(values, columnName, value.getTime());
+
+		return this;
+	}
+
 
 	public ContentValues getValues()
 	{
@@ -162,5 +171,10 @@ public class WriteUtils
 	public static void writeBoolean(ContentValues values, String columnName, boolean value)
 	{
 		values.put(columnName, value ? 1 : 0);
+	}
+
+	public static void writeDate(ContentValues values, String columnName, Date value)
+	{
+		writeLong(values, columnName, value.getTime());
 	}
 }

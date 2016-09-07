@@ -24,6 +24,8 @@ package com.anifichadia.ezsqlite;
 import android.database.Cursor;
 import android.support.annotation.NonNull;
 
+import java.util.Date;
+
 /**
  * Provides utility methods to read from an Android SQLite database using {@link Cursor}
  *
@@ -43,52 +45,57 @@ public class ReadUtils
 
 	public String getString(String columnName)
 	{
-		return cursor.getString(cursor.getColumnIndex(columnName));
+		return ReadUtils.getString(cursor, columnName);
 	}
 
 
 	public long getLong(String columnName)
 	{
-		return cursor.getLong(cursor.getColumnIndex(columnName));
+		return ReadUtils.getLong(cursor, columnName);
 	}
 
 
 	public int getInt(String columnName)
 	{
-		return cursor.getInt(cursor.getColumnIndex(columnName));
+		return ReadUtils.getInt(cursor, columnName);
 	}
 
 
 	public short getShort(String columnName)
 	{
-		return cursor.getShort(cursor.getColumnIndex(columnName));
+		return ReadUtils.getShort(cursor, columnName);
 	}
 
 
 	public byte[] getBlob(String columnName)
 	{
-		return cursor.getBlob(cursor.getColumnIndex(columnName));
+		return ReadUtils.getBlob(cursor, columnName);
 	}
 
 
 	public double getDouble(String columnName)
 	{
-		return cursor.getDouble(cursor.getColumnIndex(columnName));
+		return ReadUtils.getDouble(cursor, columnName);
 	}
 
 
 	public float getFloat(String columnName)
 	{
-		return cursor.getFloat(cursor.getColumnIndex(columnName));
+		return ReadUtils.getFloat(cursor, columnName);
 	}
 
 
 	public boolean getBoolean(String columnName)
 	{
-		return cursor.getInt(cursor.getColumnIndex(columnName)) != 0;
+		return ReadUtils.getBoolean(cursor, columnName);
 	}
 
-	
+	public Date getDate(String columnName)
+ 	{
+		return ReadUtils.getDate(cursor, columnName);
+	}
+
+
 	public static String getString(Cursor cursor, String columnName)
 	{
 		return cursor.getString(cursor.getColumnIndex(columnName));
@@ -134,5 +141,10 @@ public class ReadUtils
 	public static boolean getBoolean(Cursor cursor, String columnName)
 	{
 		return cursor.getInt(cursor.getColumnIndex(columnName)) != 0;
+	}
+
+	public static Date getDate(Cursor cursor, String columnName)
+	{
+		return new Date(getLong(cursor, columnName));
 	}
 }
